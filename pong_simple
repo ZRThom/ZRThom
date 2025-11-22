@@ -1,4 +1,4 @@
-import pygame
+import pygame #biblioteque pygame
 from enum import Enum
 from random import randint
 
@@ -7,66 +7,71 @@ from random import randint
 pygame.init()
 
 #fenetre
-screenSize = (800, 600)
-fenetre = pygame.display.set_mode(screenSize)
-pygame.display.set_caption("McPong")
-font = pygame.font.SysFont("comicsans", 30)
-font2 = pygame.font.SysFont("comicsans", 220)
-font3 = pygame.font.SysFont("Arial", 50)
+screenSize = (800, 600) #taille fenetre
+fenetre = pygame.display.set_mode(screenSize) #cree la fenetre
+pygame.display.set_caption("McPong") # titre fenetre
+font = pygame.font.SysFont("comicsans", 30) # police score
+font2 = pygame.font.SysFont("comicsans", 220) # police compte a rebours
+font3 = pygame.font.SysFont("Arial", 50) # police pour le texte "score"
 
 #couleur
-gris = (50,50,50)
+gris = (50,50,50) # couleur fond
 
 #balle
-balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20] #[X, Y, WIDTH, HEIGHT]
+balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20] #[ position X, position  Y, taille largeur WIDTH, taille hauteur HEIGHT] (balle centré)
 
 #smooth
-smoothP1 = [False, False]
-smoothP2 = [False, False]
+smoothP1 = [False, False] # états des touches joueur 1 [haut, bas]
+smoothP2 = [False, False] # états des touches joueur 1 [haut, bas]
 
 #touche balle
-smoothB1 = False
+smoothB1 = False # balle en mouvement (actuellement au début non (false)
 
 #vitesse
-vitesseBarre = 0.2
-vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10] #[X, Y]
+vitesseBarre = 0.2 #vitessez barres
+vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10] #[X, Y] vitesse initiale balle
 
 #joueurs
-phh1 = [pygame.K_z, pygame.K_s, [10                , (screenSize[1] - 100) / 2, 12, 150], 0] #[X, Y, WIDTH, HEIGHT]
-phh2 = [pygame.K_e, pygame.K_d, [screenSize[0] - 20, (screenSize[1] - 100) / 2, 12, 150], 0] #[X, Y, WIDTH, HEIGHT]
+phh1 = [pygame.K_z, pygame.K_s, [10, (screenSize[1] - 100) / 2, 12, 150], 0] # touche haut, touche bas[rectangle X, rectangle Y, WIDTH, HEIGHT], score
+phh2 = [pygame.K_e, pygame.K_d, [screenSize[0] - 20, (screenSize[1] - 100) / 2, 12, 150], 0] # touche haut, touche bas[rectangle X, rectangle Y, WIDTH, HEIGHT], score
 
 #attendre
-appuiEspaceTimer = 0
+appuiEspaceTimer = 0 #timer compte a rebours
 
-#jsp
+# création de l'IA
+IA_ACTIVE = True # true = remplace le joueur 2 par l'IA
+
+#"main" du jeu
 def main():
-    global smoothP1, smoothP2, smoothB1, vitesseBarre, balle, vitesseBalle
-    while True:
-        affichage()
+    global smoothP1, smoothP2, smoothB1, vitesseBarre, balle, vitesseBalle # selection des variable que l'on va utiliser
+    while True: # boucle principal
+        affichage() # affiche TOUT
 
-        if smoothB1:
-            balle[0] += vitesseBalle[0]
-            balle[1] += vitesseBalle[1]
+        if smoothB1: #si la balle doit bouger
+            balle[0] += vitesseBalle[0] # déplacement en X
+            balle[1] += vitesseBalle[1] # déplacement en Y
 
-            if balle[1] + balle[3] > screenSize[1] or balle[1] < 0:
-                vitesseBalle[1] = -vitesseBalle[1]
+            # rebond balle
+            if balle[1] + balle[3] > screenSize[1] or balle[1] < 0: # si hauteur
+                vitesseBalle[1] = -vitesseBalle[1] # aller sens inverse
 
-            if balle[0] + balle[2] > screenSize[0]:
+            if balle[0] + balle[2] > screenSize[0]: # joueur 1
+                smoothB1 = False
+                balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20] # reset balle
+                vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10]
+                phh1[3] += 1 # score +1 au joueur 1
+
+            if balle[0] < 0: # joueur 1
                 smoothB1 = False
                 balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20]
                 vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10]
-                phh1[3] += 1
+                phh2[3] += 1 # score +1 au joueur 2
 
-            if balle[0] < 0:
-                smoothB1 = False
-                balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20]
-                vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10]
-                phh2[3] += 1
-
+            # collisions active
             if (phh1[2][0] + phh1[2][2] > balle[0] and phh1[2][1] + phh1[2][3] > balle[1] and phh1[2][1] < balle[1] + balle[3] and vitesseBalle[0] < 0
                     or phh2[2][0] < balle[0] + balle[2] and phh2[2][1] + phh2[2][3] > balle[1] and phh2[2][1] < balle[1] + balle[3] and vitesseBalle[0] > 0):
                 vitesseBalle[0] = -vitesseBalle[0]
-                #vitesseBalle[0] *= 1.05
+                #vitesseBalle[0] *= 1.05 # mode de jeu exponentiel
                 #vitesseBalle[1] *= 1.05
 
 
