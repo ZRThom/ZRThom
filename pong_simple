@@ -1,0 +1,147 @@
+import pygame
+from enum import Enum
+from random import randint
+
+
+#initialisation
+pygame.init()
+
+#fenetre
+screenSize = (800, 600)
+fenetre = pygame.display.set_mode(screenSize)
+pygame.display.set_caption("McPong")
+font = pygame.font.SysFont("comicsans", 30)
+font2 = pygame.font.SysFont("comicsans", 220)
+font3 = pygame.font.SysFont("Arial", 50)
+
+#couleur
+gris = (50,50,50)
+
+#balle
+balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20] #[X, Y, WIDTH, HEIGHT]
+
+#smooth
+smoothP1 = [False, False]
+smoothP2 = [False, False]
+
+#touche balle
+smoothB1 = False
+
+#vitesse
+vitesseBarre = 0.2
+vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10] #[X, Y]
+
+#joueurs
+phh1 = [pygame.K_z, pygame.K_s, [10                , (screenSize[1] - 100) / 2, 12, 150], 0] #[X, Y, WIDTH, HEIGHT]
+phh2 = [pygame.K_e, pygame.K_d, [screenSize[0] - 20, (screenSize[1] - 100) / 2, 12, 150], 0] #[X, Y, WIDTH, HEIGHT]
+
+#attendre
+appuiEspaceTimer = 0
+
+#jsp
+def main():
+    global smoothP1, smoothP2, smoothB1, vitesseBarre, balle, vitesseBalle
+    while True:
+        affichage()
+
+        if smoothB1:
+            balle[0] += vitesseBalle[0]
+            balle[1] += vitesseBalle[1]
+
+            if balle[1] + balle[3] > screenSize[1] or balle[1] < 0:
+                vitesseBalle[1] = -vitesseBalle[1]
+
+            if balle[0] + balle[2] > screenSize[0]:
+                smoothB1 = False
+                balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20]
+                vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10]
+                phh1[3] += 1
+
+            if balle[0] < 0:
+                smoothB1 = False
+                balle = [(screenSize[0] - 20) / 2, (screenSize[1] - 20) / 2, 20, 20]
+                vitesseBalle = [0.1, 0.1] #[randint(15, 35) / 100 * (randint(0, 1) * 2 - 1), randint(1, 3) / 10]
+                phh2[3] += 1
+
+            if (phh1[2][0] + phh1[2][2] > balle[0] and phh1[2][1] + phh1[2][3] > balle[1] and phh1[2][1] < balle[1] + balle[3] and vitesseBalle[0] < 0
+                    or phh2[2][0] < balle[0] + balle[2] and phh2[2][1] + phh2[2][3] > balle[1] and phh2[2][1] < balle[1] + balle[3] and vitesseBalle[0] > 0):
+                vitesseBalle[0] = -vitesseBalle[0]
+                #vitesseBalle[0] *= 1.05
+                #vitesseBalle[1] *= 1.05
+
+
+        if smoothP1[1]:
+            if phh1[2][1] + phh1[2][3] < screenSize[1]:
+                phh1[2][1] += vitesseBarre
+        if smoothP1[0]:
+            if phh1[2][1] > 0: #le truc en haut a gauche
+                phh1[2][1] -= vitesseBarre
+
+        if smoothP2[1]:
+            if phh2[2][1] + phh2[2][3] < screenSize[1]:
+                phh2[2][1] += vitesseBarre
+        if smoothP2[0]:
+            if phh2[2][1] > 0:
+                phh2[2][1] -= vitesseBarre
+
+
+        for event in pygame.event.get():
+            eventHandler(event)
+
+def eventHandler(event):
+    global smoothB1, appuiEspaceTimer
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_SPACE:
+            appuiEspaceTimer = pygame.time.get_ticks()
+            while pygame.time.get_ticks() <= appuiEspaceTimer + 3000:
+                tempsRestante = -int((pygame.time.get_ticks() - appuiEspaceTimer)/1000) + 3
+
+                text = font2.render(str(tempsRestante), True, (255, 255, 255))
+                pygame.draw.rect(fenetre, (50, 50, 50), ((screenSize[0] - text.get_width()) / 2.1, 100, 300, 300)) #rectangle
+                pygame.draw.circle(fenetre, (0, 0, 0), (balle[0] + 10, balle[1] + 10), 10)
+                fenetre.blit(text, ((screenSize[0] - text.get_width()) / 2, 100))
+
+                pygame.display.flip()
+            smoothB1 = True
+        elif event.key == phh1[1]:
+            smoothP1[1] = True
+        elif event.key == phh1[0]:
+            smoothP1[0] = True
+        elif event.key == phh2[1]:
+            smoothP2[1] = True
+        elif event.key == phh2[0]:
+            smoothP2[0] = True
+
+    if event.type == pygame.KEYUP:
+        if event.key == phh1[1]:
+            smoothP1[1] = False
+        elif event.key == phh1[0]:
+            smoothP1[0] = False
+        elif event.key == phh2[1]:
+            smoothP2[1] = False
+        elif event.key == phh2[0]:
+            smoothP2[0] = False
+
+
+    if event.type == pygame.QUIT:
+        pygame.quit()
+        quit()
+
+def affichage():
+    fenetre.fill(gris)
+    pygame.draw.rect(fenetre, (0, 0, 0), phh1[2])
+    pygame.draw.rect(fenetre, (0, 0, 0), phh2[2])
+    pygame.draw.circle(fenetre, (0, 0, 0), (balle[0] + 10, balle[1] + 10), 10)
+    text = font.render(str(phh1[3]), True, (255, 255, 255))
+    fenetre.blit(text, ((screenSize[0] - text.get_width()) / 4, 20))
+    text = font.render(str(phh2[3]), True, (255, 255, 255))
+    fenetre.blit(text, (((screenSize[0] - text.get_width()) / 4)*3, 20))
+    text = font3.render("<- SCORE ->", True, (255, 255, 255))
+    fenetre.blit(text, ((screenSize[0] - text.get_width()) / 2, 20))
+    #text = font.render("uytifdydjtfluyjchiasse", True, (255, 255, 255))
+    #fenetre.blit(text, (200, 20))
+    pygame.display.flip()
+
+if __name__ == '__main__':
+    main()
+
