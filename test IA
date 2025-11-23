@@ -1,0 +1,33 @@
+IA_ACTIVE = True  # si True, le joueur 2 devient une IA
+
+
+# partie mouvement de l'IA
+if smoothP2[1]:
+    if phh2[2][1] + phh2[2][3] < screenSize[1]:
+        phh2[2][1] += vitesseBarre
+if smoothP2[0]:
+    if phh2[2][1] > 0:
+        phh2[2][1] -= vitesseBarre
+
+
+# partie action de l'IA
+if IA_ACTIVE:
+    # IA simple : suivre la balle uniquement quand elle vient vers elle
+    if vitesseBalle[0] > 0:  # la balle va vers l'IA
+        centre_barre = phh2[2][1] + phh2[2][3] / 2
+
+        if centre_barre < balle[1] + balle[3] / 2:
+            phh2[2][1] += vitesseBarre * 0.9  # vitesse ajustée (évite IA parfaite)
+        elif centre_barre > balle[1] + balle[3] / 2:
+            phh2[2][1] -= vitesseBarre * 0.9
+
+        # empêcher de sortir de l'écran
+        phh2[2][1] = max(0, min(phh2[2][1], screenSize[1] - phh2[2][3]))
+else:
+    # contrôle humain classique
+    if smoothP2[1]:
+        if phh2[2][1] + phh2[2][3] < screenSize[1]:
+            phh2[2][1] += vitesseBarre
+    if smoothP2[0]:
+        if phh2[2][1] > 0:
+            phh2[2][1] -= vitesseBarre
