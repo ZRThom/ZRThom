@@ -31,3 +31,4 @@ else:
     if smoothP2[0]:
         if phh2[2][1] > 0:
             phh2[2][1] -= vitesseBarre
+# fin ia active
