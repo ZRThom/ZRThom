@@ -6,7 +6,7 @@ from random import randint
 #initialisation
 pygame.init()
 
-#fenetre
+#fenetre update
 screenSize = (800, 600) #taille fenetre
 fenetre = pygame.display.set_mode(screenSize) #cree la fenetre
 pygame.display.set_caption("McPong") # titre fenetre
